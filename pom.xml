@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.kubsei</groupId>
+        <artifactId>kubsei-essential-lib</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath/>
+    </parent>
+
+    <artifactId>kubsei-gateway</artifactId>
+
+    <properties>
+        <kubsei-gateway-lib.version>0.1.0-SNAPSHOT</kubsei-gateway-lib.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.kubsei</groupId>
+            <artifactId>kubsei-gateway-lib</artifactId>
+            <version>${kubsei-gateway-lib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kubsei</groupId>
+            <artifactId>kubsei-essential-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- kubsei-* artifacts (this parent included) come from GitHub Packages: server id "github" in settings.xml -->
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/kubsei/*</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+</project>

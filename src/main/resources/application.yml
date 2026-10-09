@@ -1,0 +1,110 @@
+spring:
+  application:
+    name: kubsei-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # Regex of proxies whose X-Forwarded-* we extend. Without it the gateway sends none, and users
+          # builds OAuth2 redirect URIs with its own host. Production: the load balancer's address.
+          trusted-proxies: '${TRUSTED_PROXIES:127\.0\.0\.1|0:0:0:0:0:0:0:1}'
+          # Pool connections and default timeouts (a filter can override its own timeout)
+          httpclient:
+            connect-timeout: 5000
+            response-timeout: 40s
+            pool:
+              max-connections: 100
+
+server:
+  # 3001 = the monolith's port: the frontend and the Google OAuth redirect URI keep working locally
+  port: ${SERVER_PORT:3001}
+
+# ============================================
+# ROUTING
+#  origin      public path. "*" = one segment, trailing "/**" = any rest (appended to destination)
+#  destination path in the service. "*" (or ${inmask}) takes the origin's "*" segment, in order
+#  service     key in security.gateway.service
+#  methods     optional, e.g. GET,POST (empty = any)
+#  permit-all  optional, true = no token required
+#  timeout     optional, e.g. 30m (overrides httpclient.response-timeout)
+# Routes are evaluated in list order: specific paths before catch-alls.
+# ============================================
+security:
+  gateway:
+    service:
+      users:
+        uri: ${USERS_URI:http://localhost:8081}
+      editor:
+        uri: ${EDITOR_URI:http://localhost:8082}
+
+    filter:
+      # ---------- AUTH (users) ----------
+      - id: auth-register
+        origin: /api/auth/register
+        service: users
+        methods: POST
+        permit-all: true
+      - id: auth-login
+        origin: /api/auth/login
+        service: users
+        methods: POST
+        permit-all: true
+      - id: auth-refresh
+        origin: /api/auth/refresh
+        service: users
+        methods: POST
+        permit-all: true
+      - id: auth-logout
+        origin: /api/auth/logout
+        service: users
+        methods: POST
+        permit-all: true
+      - id: auth-logout-all
+        origin: /api/auth/logout-all
+        service: users
+        methods: POST
+      # Google login: start + callback
+      - id: oauth2-authorization
+        origin: /oauth2/**
+        destination: /oauth2
+        service: users
+        permit-all: true
+      - id: oauth2-callback
+        origin: /login/oauth2/**
+        destination: /login/oauth2
+        service: users
+        permit-all: true
+
+      # ---------- USERS ----------
+      - id: users
+        origin: /api/users/**
+        destination: /api/users
+        service: users
+
+      # ---------- EDITOR (GraphQL; auth checked per resolver in kubsei-editor) ----------
+      - id: editor-graphql
+        origin: /graphql
+        service: editor
+        permit-all: true
+      - id: editor-graphiql
+        origin: /graphiql/**
+        destination: /graphiql
+        service: editor
+        permit-all: true
+
+kubsei:
+  security:
+    jwt:
+      # Same in every kubsei service; kubsei-users signs, the rest verify. HS256 needs at least 32 bytes.
+      secret: ${JWT_SECRET}
+      issuer: ${JWT_ISSUER:kubsei}
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
