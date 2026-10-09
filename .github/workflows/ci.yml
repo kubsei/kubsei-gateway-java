@@ -26,7 +26,8 @@ jobs:
       - name: Build
         run: mvn -B verify
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Classic PAT (read/write:packages) to reach every kubsei-* package; GITHUB_TOKEN only sees this repo's
+          GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Login to GHCR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
