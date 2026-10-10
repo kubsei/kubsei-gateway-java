@@ -24,7 +24,7 @@ jobs:
           server-id: github
 
       - name: Build
-        run: mvn -B verify
+        run: mvn -B -U verify
         env:
           # Classic PAT (read/write:packages) to reach every kubsei-* package; GITHUB_TOKEN only sees this repo's
           GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
